@@ -7,8 +7,10 @@
     "lz-string": "^1.5.0"
   },
   "scripts": {
-    "postinstall": "npm install -g sass@1.77.6",
-    "build": "sass --style compressed scss/custom.scss:../dist/css/bootstrap.min.css && cp node_modules/lz-string/libs/lz-string.min.js ../dist/js/lz-string.min.js && cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js ../dist/js/bootstrap.bundle.min.js && cp node_modules/jquery/dist/jquery.min.js ../dist/js/jquery.min.js && cp node_modules/jquery-validation/dist/jquery.validate.min.js ../dist/js/jquery.validate.min.js && cp node_modules/jquery-validation/dist/additional-methods.min.js ../dist/js/additional-methods.min.js",
+    "process-sass": "npx sass --style compressed scss/custom.scss:../dist/css/bootstrap.min.css",
+    "copy-js-deps": "mkdir -p ../dist/js && cp node_modules/lz-string/libs/lz-string.min.js ../dist/js/lz-string.min.js && cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js ../dist/js/bootstrap.bundle.min.js && cp node_modules/jquery/dist/jquery.min.js ../dist/js/jquery.min.js && cp node_modules/jquery-validation/dist/jquery.validate.min.js ../dist/js/jquery.validate.min.js && cp node_modules/jquery-validation/dist/additional-methods.min.js ../dist/js/additional-methods.min.js",
+    "copy-static": "cp -r static/* ../dist/",
+    "build": "npm run process-sass && npm run copy-js-deps && npm run copy-static",
     "test": "npx playwright test",
     "setup:certs": "mkdir -p certs; mkcert -cert-file certs/cert.pem -key-file certs/cert.key localhost 127.0.0.1",
     "start": "node node_modules/http-server/bin/http-server ../dist -c-1",
