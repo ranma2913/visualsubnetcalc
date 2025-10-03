@@ -1,4 +1,4 @@
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 
 ARG REACT_APP_SERVICES_HOST=/services/m
 
