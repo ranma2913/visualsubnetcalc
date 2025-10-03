@@ -70,19 +70,19 @@ Compile from source:
 
 ```shell
 # Clone the repository
-> git clone https://github.com/ckabalan/visualsubnetcalc
+git clone https://github.com/ckabalan/visualsubnetcalc
 # Change to the repository directory
-> cd visualsubnetcalc
+cd visualsubnetcalc
 # Use recommended NVM version
-> nvm use
+nvm use
 # Change to the sources directory
-> cd src
+cd src
 # Install Bootstrap
-> npm install
+npm install
 # Compile Bootstrap (Also install sass command line globally)
-> npm run build
+npm run build
 # Run the local webserver
-> npm start
+npm start
 ```
 
 The full application should then be available within `./dist/`, open `./dist/index.html` in a browser.
@@ -94,15 +94,15 @@ The full application should then be available within `./dist/`, open `./dist/ind
 ```shell
 
 #Install mkcert
-> brew install mkcert
+brew install mkcert
 # generate CA Certs to be trusted by local browsers
-> mkcert install
+mkcert install
 # generate certs for local development
-> cd visualsubnetcalc/src
+cd visualsubnetcalc/src
 # generate certs for local development
-> npm run setup:certs
+npm run setup:certs
 # run the local webserver with https
-> npm run local-secure-start
+npm run local-secure-start
 ```
 
 ## Running in a container
