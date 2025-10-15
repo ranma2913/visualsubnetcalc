@@ -51,7 +51,7 @@ const minSubnetSizes = {
 };
 
 $('input#network').on('paste', function (e) {
-    let pastedData = window.event.clipboardData.getData('text').trim()
+    let pastedData = e.originalEvent.clipboardData.getData('text').trim()
 
     // Get the network input pattern
     let networkPattern = new RegExp($('#network').attr('pattern'))
