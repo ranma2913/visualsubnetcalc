@@ -227,6 +227,9 @@ function reset() {
     }
     maxNetSize = parseInt($('#netsize').val())
     renderTable(operatingMode);
+
+    // Save to localStorage after subnet map reset/modification
+    saveConfigToLocalStorage();
 }
 
 function changeBaseNetwork(newBaseNetwork) {
@@ -244,6 +247,7 @@ function isMatchingSize(subnet1, subnet2) {
 }
 
 $('#calcbody').on('click', 'td.split,td.join', function (event) {
+    console.log("click on 'td.split,td.join' event=" + JSON.stringify(event));
     // HTML DOM Data elements! Yay! See the `data-*` attributes of the HTML tags
     mutate_subnet_map(this.dataset.mutateVerb, this.dataset.subnet, '')
     this.dataset.subnet = sortIPCIDRs(this.dataset.subnet)
@@ -690,6 +694,11 @@ function mutate_subnet_map(verb, network, subnetTree, propValue = '') {
             }
         }
     }
+
+    if (subnetTree === subnetMap) {
+        // Save the root subnetMap to localStorage after any mutation of child subnetTrees
+        saveConfigToLocalStorage();
+    }
 }
 
 function switchMode(operatingMode) {
@@ -866,9 +875,15 @@ $(document).ready(function () {
         }
     });
 
+    // Load configuration in priority order: URL params > localStorage > default
     let autoConfigResult = processConfigUrl();
     if (!autoConfigResult) {
-        reset();
+        // No URL config found, try localStorage
+        let localStorageResult = loadConfigFromLocalStorage();
+        if (!localStorageResult) {
+            // No saved config found, load default
+            reset();
+        }
     }
 });
 
@@ -1019,6 +1034,8 @@ function importConfig(text) {
     operatingMode = text['operating_mode'] || 'Standard'
     switchMode(operatingMode);
 
+    // Save to localStorage after importing configuration
+    saveConfigToLocalStorage();
 }
 
 function sortIPCIDRs(obj) {
@@ -1059,6 +1076,35 @@ function sortIPCIDRs(obj) {
     }
 
     return sortedObj;
+}
+
+// LocalStorage key for persisting configuration
+const LOCALSTORAGE_KEY = 'visualsubnetcalc_config'
+
+// LocalStorage persistence functions
+function saveConfigToLocalStorage() {
+    try {
+        const config = exportConfig(false); // Use full config, not minified
+        localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(config));
+    } catch (error) {
+        console.warn('Failed to save configuration to localStorage:', error);
+    }
+}
+
+function loadConfigFromLocalStorage() {
+    try {
+        const storedConfig = localStorage.getItem(LOCALSTORAGE_KEY);
+        if (storedConfig) {
+            const config = JSON.parse(storedConfig);
+            importConfig(config);
+            return true;
+        }
+    } catch (error) {
+        console.warn('Failed to load configuration from localStorage:', error);
+        // Clear corrupted data
+        localStorage.removeItem(LOCALSTORAGE_KEY);
+    }
+    return false;
 }
 
 const rgba2hex = (rgba) => `#${rgba.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+\.{0,1}\d*))?\)$/).slice(1).map((n, i) => (i === 3 ? Math.round(parseFloat(n) * 255) : parseFloat(n)).toString(16).padStart(2, '0').replace('NaN', '')).join('')}`
