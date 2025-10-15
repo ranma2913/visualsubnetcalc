@@ -259,8 +259,11 @@ $('#calcbody').on('keyup', 'td.note input', function (event) {
     let delay = 1000;
     clearTimeout(noteTimeout);
     noteTimeout = setTimeout(function (element) {
+        // Trim value
         let trimmedValue = element.value.trim();
-        element.value = trimmedValue; // Auto-trim the input value
+        // Replace non-breaking spaces with regular spaces
+        let cleanedValue = trimmedValue.replaceAll(/\u00A0/g, ' ');
+        element.value = cleanedValue
         mutate_subnet_map('note', element.dataset.subnet, '', trimmedValue)
     }, delay, this);
 })
@@ -268,8 +271,11 @@ $('#calcbody').on('keyup', 'td.note input', function (event) {
 $('#calcbody').on('focusout', 'td.note input', function (event) {
     // HTML DOM Data elements! Yay! See the `data-*` attributes of the HTML tags
     clearTimeout(noteTimeout);
+    // Trim value
     let trimmedValue = this.value.trim();
-    this.value = trimmedValue; // Auto-trim the input value
+    // Replace non-breaking spaces with regular spaces
+    let cleanedValue = trimmedValue.replaceAll(/\u00A0/g, ' ');
+    this.value = cleanedValue
     mutate_subnet_map('note', this.dataset.subnet, '', trimmedValue)
 })
 
