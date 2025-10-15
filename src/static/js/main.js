@@ -255,14 +255,18 @@ $('#calcbody').on('keyup', 'td.note input', function (event) {
     let delay = 1000;
     clearTimeout(noteTimeout);
     noteTimeout = setTimeout(function (element) {
-        mutate_subnet_map('note', element.dataset.subnet, '', element.value)
+        let trimmedValue = element.value.trim();
+        element.value = trimmedValue; // Auto-trim the input value
+        mutate_subnet_map('note', element.dataset.subnet, '', trimmedValue)
     }, delay, this);
 })
 
 $('#calcbody').on('focusout', 'td.note input', function (event) {
     // HTML DOM Data elements! Yay! See the `data-*` attributes of the HTML tags
     clearTimeout(noteTimeout);
-    mutate_subnet_map('note', this.dataset.subnet, '', this.value)
+    let trimmedValue = this.value.trim();
+    this.value = trimmedValue; // Auto-trim the input value
+    mutate_subnet_map('note', this.dataset.subnet, '', trimmedValue)
 })
 
 
