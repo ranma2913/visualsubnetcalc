@@ -51,11 +51,31 @@ const minSubnetSizes = {
 };
 
 $('input#network').on('paste', function (e) {
-    let pastedData = window.event.clipboardData.getData('text')
+    let pastedData = window.event.clipboardData.getData('text').trim()
+
+    // Get the network input pattern
+    let networkPattern = new RegExp($('#network').attr('pattern'))
+
+    // Get the current netsize pattern based on operating mode
+    let netsizePattern = new RegExp(netsizePatterns[operatingMode])
+
+    let network
+    let netSize
     if (pastedData.includes('/')) {
-        let [network, netSize] = pastedData.split('/')
-        $('#network').val(network)
+        // Contains slash, assume it's CIDR notation
+        network = pastedData.split('/')[0].trim()
+        netSize = pastedData.split('/')[1].trim()
+    } else {
+        // No slash in pastedData
+        network = pastedData.trim()
+    }
+    // Check netsize pattern second
+    if (netsizePattern.test(netSize)) {
         $('#netsize').val(netSize)
+    }
+    // Check network pattern first
+    if (networkPattern.test(network)) {
+        $('#network').val(network)
     }
     e.preventDefault()
 });
@@ -67,17 +87,17 @@ $("input#network").on('keydown', function (e) {
     }
 });
 
-$('input#network,input#netsize').on('input', function() {
+$('input#network,input#netsize').on('input', function () {
     $('#input_form')[0].classList.add('was-validated');
 })
 
-$('#color_palette div').on('click', function() {
+$('#color_palette div').on('click', function () {
     // We don't really NEED to convert this to hex, but it's really low overhead to do the
     // conversion here and saves us space in the export/save
     inflightColor = rgba2hex($(this).css('background-color'))
 })
 
-$('#calcbody').on('click', '.row_address, .row_range, .row_usable, .row_hosts, .note, input', function(event) {
+$('#calcbody').on('click', '.row_address, .row_range, .row_usable, .row_hosts, .note, input', function (event) {
     if (inflightColor !== 'NONE') {
         mutate_subnet_map('color', this.dataset.subnet, '', inflightColor)
         // We could re-render here, but there is really no point, keep performant and just change the background color now
@@ -86,7 +106,7 @@ $('#calcbody').on('click', '.row_address, .row_range, .row_usable, .row_hosts, .
     }
 })
 
-$('#btn_go').on('click', function() {
+$('#btn_go').on('click', function () {
     $('#input_form').removeClass('was-validated');
     $('#input_form').validate();
     if ($('#input_form').valid()) {
@@ -99,77 +119,77 @@ $('#btn_go').on('click', function() {
 
 })
 
-$('#dropdown_standard').click(function() {
+$('#dropdown_standard').click(function () {
     previousOperatingMode = operatingMode;
     operatingMode = 'Standard';
 
-    if(!switchMode(operatingMode)) {
+    if (!switchMode(operatingMode)) {
         operatingMode = previousOperatingMode;
-        $('#dropdown_'+ operatingMode.toLowerCase()).addClass('active');
+        $('#dropdown_' + operatingMode.toLowerCase()).addClass('active');
     }
 
 });
 
-$('#dropdown_azure').click(function() {
+$('#dropdown_azure').click(function () {
     previousOperatingMode = operatingMode;
     operatingMode = 'AZURE';
 
-    if(!switchMode(operatingMode)) {
+    if (!switchMode(operatingMode)) {
         operatingMode = previousOperatingMode;
-        $('#dropdown_'+ operatingMode.toLowerCase()).addClass('active');
+        $('#dropdown_' + operatingMode.toLowerCase()).addClass('active');
     }
 
 });
 
-$('#dropdown_aws').click(function() {
+$('#dropdown_aws').click(function () {
     previousOperatingMode = operatingMode;
     operatingMode = 'AWS';
 
-    if(!switchMode(operatingMode)) {
+    if (!switchMode(operatingMode)) {
         operatingMode = previousOperatingMode;
-        $('#dropdown_'+ operatingMode.toLowerCase()).addClass('active');
+        $('#dropdown_' + operatingMode.toLowerCase()).addClass('active');
     }
 });
 
-$('#dropdown_oci').click(function() {
+$('#dropdown_oci').click(function () {
     previousOperatingMode = operatingMode;
     operatingMode = 'OCI';
 
-    if(!switchMode(operatingMode)) {
+    if (!switchMode(operatingMode)) {
         operatingMode = previousOperatingMode;
-        $('#dropdown_'+ operatingMode.toLowerCase()).addClass('active');
+        $('#dropdown_' + operatingMode.toLowerCase()).addClass('active');
     }
 });
 
-$('#importBtn').on('click', function() {
+$('#importBtn').on('click', function () {
     importConfig(JSON.parse($('#importExportArea').val()))
 })
 
-$('#bottom_nav #colors_word_open').on('click', function() {
+$('#bottom_nav #colors_word_open').on('click', function () {
     $('#bottom_nav #color_palette').removeClass('d-none');
     $('#bottom_nav #colors_word_close').removeClass('d-none');
     $('#bottom_nav #colors_word_open').addClass('d-none');
 })
 
-$('#bottom_nav #colors_word_close').on('click', function() {
+$('#bottom_nav #colors_word_close').on('click', function () {
     $('#bottom_nav #color_palette').addClass('d-none');
     $('#bottom_nav #colors_word_close').addClass('d-none');
     $('#bottom_nav #colors_word_open').removeClass('d-none');
     inflightColor = 'NONE'
 })
 
-$('#bottom_nav #copy_url').on('click', function() {
+$('#bottom_nav #copy_url').on('click', function () {
     // TODO: Provide a warning here if the URL is longer than 2000 characters, probably using a modal.
     let url = window.location.origin + getConfigUrl()
     navigator.clipboard.writeText(url);
     $('#bottom_nav #copy_url span').text('Copied!')
     // Swap the text back after 3sec
-    setTimeout(function(){
+    setTimeout(function () {
         $('#bottom_nav #copy_url span').text('Copy Shareable URL')
     }, 2000)
 })
 
-$('#btn_import_export').on('click', function() {
+$('#btn_import_export').on('click', function () {
     $('#importExportArea').val(JSON.stringify(exportConfig(false), null, 2))
 })
 
@@ -223,23 +243,23 @@ function isMatchingSize(subnet1, subnet2) {
     return subnet1.split('/')[1] === subnet2.split('/')[1];
 }
 
-$('#calcbody').on('click', 'td.split,td.join', function(event) {
+$('#calcbody').on('click', 'td.split,td.join', function (event) {
     // HTML DOM Data elements! Yay! See the `data-*` attributes of the HTML tags
     mutate_subnet_map(this.dataset.mutateVerb, this.dataset.subnet, '')
     this.dataset.subnet = sortIPCIDRs(this.dataset.subnet)
     renderTable(operatingMode);
 })
 
-$('#calcbody').on('keyup', 'td.note input', function(event) {
+$('#calcbody').on('keyup', 'td.note input', function (event) {
     // HTML DOM Data elements! Yay! See the `data-*` attributes of the HTML tags
     let delay = 1000;
     clearTimeout(noteTimeout);
-    noteTimeout = setTimeout(function(element) {
+    noteTimeout = setTimeout(function (element) {
         mutate_subnet_map('note', element.dataset.subnet, '', element.value)
     }, delay, this);
 })
 
-$('#calcbody').on('focusout', 'td.note input', function(event) {
+$('#calcbody').on('focusout', 'td.note input', function (event) {
     // HTML DOM Data elements! Yay! See the `data-*` attributes of the HTML tags
     clearTimeout(noteTimeout);
     mutate_subnet_map('note', this.dataset.subnet, '', this.value)
@@ -255,9 +275,11 @@ function renderTable(operatingMode) {
 
 function addRowTree(subnetTree, depth, maxDepth, operatingMode) {
     for (let mapKey in subnetTree) {
-        if (mapKey.startsWith('_')) { continue; }
+        if (mapKey.startsWith('_')) {
+            continue;
+        }
         if (has_network_sub_keys(subnetTree[mapKey])) {
-            addRowTree(subnetTree[mapKey], depth + 1, maxDepth,operatingMode)
+            addRowTree(subnetTree[mapKey], depth + 1, maxDepth, operatingMode)
         } else {
             let subnet_split = mapKey.split('/')
             let notesWidth = '30%';
@@ -270,7 +292,7 @@ function addRowTree(subnetTree, depth, maxDepth, operatingMode) {
             } else if (maxDepth > 20) {
                 notesWidth = '10%';
             }
-            addRow(subnet_split[0], parseInt(subnet_split[1]), (infoColumnCount + maxDepth - depth), (subnetTree[mapKey]['_note'] || ''), notesWidth, (subnetTree[mapKey]['_color'] || ''),operatingMode)
+            addRow(subnet_split[0], parseInt(subnet_split[1]), (infoColumnCount + maxDepth - depth), (subnetTree[mapKey]['_note'] || ''), notesWidth, (subnetTree[mapKey]['_color'] || ''), operatingMode)
         }
     }
 }
@@ -325,11 +347,13 @@ function addRow(network, netSize, colspan, note, notesWidth, color, operatingMod
 
 // Helper Functions
 function ip2int(ip) {
-    return ip.split('.').reduce(function(ipInt, octet) { return (ipInt<<8) + parseInt(octet, 10)}, 0) >>> 0;
+    return ip.split('.').reduce(function (ipInt, octet) {
+        return (ipInt << 8) + parseInt(octet, 10)
+    }, 0) >>> 0;
 }
 
-function int2ip (ipInt) {
-    return ((ipInt>>>24) + '.' + (ipInt>>16 & 255) + '.' + (ipInt>>8 & 255) + '.' + (ipInt & 255));
+function int2ip(ipInt) {
+    return ((ipInt >>> 24) + '.' + (ipInt >> 16 & 255) + '.' + (ipInt >> 8 & 255) + '.' + (ipInt & 255));
 }
 
 function toBase36(num) {
@@ -423,7 +447,7 @@ function subnet_last_address(subnet, netSize) {
 }
 
 function subnet_addresses(netSize) {
-    return 2**(32-netSize);
+    return 2 ** (32 - netSize);
 }
 
 function subnet_usable_first(network, netSize, operatingMode) {
@@ -446,7 +470,7 @@ function subnet_usable_first(network, netSize, operatingMode) {
             default:
                 return network + 1;
                 break;
-        }            
+        }
     } else {
         return network;
     }
@@ -464,9 +488,13 @@ function subnet_usable_last(network, netSize) {
 function get_dict_max_depth(dict, curDepth) {
     let maxDepth = curDepth
     for (let mapKey in dict) {
-        if (mapKey.startsWith('_')) { continue; }
+        if (mapKey.startsWith('_')) {
+            continue;
+        }
         let newDepth = get_dict_max_depth(dict[mapKey], curDepth + 1)
-        if (newDepth > maxDepth) { maxDepth = newDepth }
+        if (newDepth > maxDepth) {
+            maxDepth = newDepth
+        }
     }
     return maxDepth
 }
@@ -474,7 +502,9 @@ function get_dict_max_depth(dict, curDepth) {
 
 function get_join_children(subnetTree, childCount) {
     for (let mapKey in subnetTree) {
-        if (mapKey.startsWith('_')) { continue; }
+        if (mapKey.startsWith('_')) {
+            continue;
+        }
         if (has_network_sub_keys(subnetTree[mapKey])) {
             childCount += get_join_children(subnetTree[mapKey])
         } else {
@@ -499,7 +529,9 @@ function count_network_children(network, subnetTree, ancestryList) {
     // the current key are unsplit networks (IE rows in the table, IE keys with a value of {}).
     let childCount = 0
     for (let mapKey in subnetTree) {
-        if (mapKey.startsWith('_')) { continue; }
+        if (mapKey.startsWith('_')) {
+            continue;
+        }
         if (has_network_sub_keys(subnetTree[mapKey])) {
             childCount += count_network_children(network, subnetTree[mapKey], ancestryList.concat([mapKey]))
         } else {
@@ -516,7 +548,9 @@ function get_network_children(network, subnetTree) {
     // the current key are unsplit networks (IE rows in the table, IE keys with a value of {}).
     let subnetList = []
     for (let mapKey in subnetTree) {
-        if (mapKey.startsWith('_')) { continue; }
+        if (mapKey.startsWith('_')) {
+            continue;
+        }
         if (has_network_sub_keys(subnetTree[mapKey])) {
             subnetList.push.apply(subnetList, get_network_children(network, subnetTree[mapKey]))
         } else {
@@ -529,7 +563,9 @@ function get_network_children(network, subnetTree) {
 function get_matching_network_list(network, subnetTree) {
     let subnetList = []
     for (let mapKey in subnetTree) {
-        if (mapKey.startsWith('_')) { continue; }
+        if (mapKey.startsWith('_')) {
+            continue;
+        }
         if (has_network_sub_keys(subnetTree[mapKey])) {
             subnetList.push.apply(subnetList, get_matching_network_list(network, subnetTree[mapKey]))
         }
@@ -543,7 +579,7 @@ function get_matching_network_list(network, subnetTree) {
 function get_consolidated_property(subnetTree, property) {
     let allValues = get_property_values(subnetTree, property)
     // https://stackoverflow.com/questions/14832603/check-if-all-values-of-array-are-equal
-    let allValuesMatch = allValues.every( (val, i, arr) => val === arr[0] )
+    let allValuesMatch = allValues.every((val, i, arr) => val === arr[0])
     if (allValuesMatch) {
         return allValues[0]
     } else {
@@ -568,23 +604,27 @@ function get_property_values(subnetTree, property) {
 function get_network(networkInput, netSize) {
     let ipInt = ip2int(networkInput)
     netSize = parseInt(netSize)
-    for (let i=31-netSize; i>=0; i--) {
-        ipInt &= ~ 1<<i;
+    for (let i = 31 - netSize; i >= 0; i--) {
+        ipInt &= ~1 << i;
     }
     return int2ip(ipInt);
 }
 
 function split_network(networkInput, netSize) {
     let subnets = [networkInput + '/' + (netSize + 1)]
-    let newSubnet = ip2int(networkInput) + 2**(32-netSize-1);
+    let newSubnet = ip2int(networkInput) + 2 ** (32 - netSize - 1);
     subnets.push(int2ip(newSubnet) + '/' + (netSize + 1))
     return subnets;
 }
 
 function mutate_subnet_map(verb, network, subnetTree, propValue = '') {
-    if (subnetTree === '') { subnetTree = subnetMap }
+    if (subnetTree === '') {
+        subnetTree = subnetMap
+    }
     for (let mapKey in subnetTree) {
-        if (mapKey.startsWith('_')) { continue; }
+        if (mapKey.startsWith('_')) {
+            continue;
+        }
         if (has_network_sub_keys(subnetTree[mapKey])) {
             mutate_subnet_map(verb, network, subnetTree[mapKey], propValue)
         }
@@ -763,7 +803,7 @@ function show_warning_modal(message) {
     notifyModal.show()
 }
 
-$( document ).ready(function() {
+$(document).ready(function () {
 
     // Initialize the jQuery Validation on the form
     var validator = $('#input_form').validate({
@@ -790,7 +830,7 @@ $( document ).ready(function() {
                 pattern: 'Smallest size is /32'
             }
         },
-        errorPlacement: function(error, element) {
+        errorPlacement: function (error, element) {
             //console.log(error);
             //console.log(element);
             if (error[0].innerHTML !== '') {
@@ -813,9 +853,10 @@ $( document ).ready(function() {
         },
         // This success function appears to be required as errorPlacement() does not fire without the success function
         // being defined.
-        success: function(label, element) { },
+        success: function (label, element) {
+        },
         // When the form is valid, add the 'was-validated' class
-        submitHandler: function(form) {
+        submitHandler: function (form) {
             form.classList.add('was-validated');
             form.submit(); // Submit the form
         }
@@ -908,7 +949,7 @@ function minifySubnetMap(minifiedMap, referenceMap, baseNetwork) {
             minifiedMap[nthRepresentation]['c'] = referenceMap[subnet]['_color']
         }
         if (Object.keys(referenceMap[subnet]).some(key => !key.startsWith('_'))) {
-            minifySubnetMap(minifiedMap[nthRepresentation], referenceMap[subnet], baseNetwork);
+            minifySubnetMap(miniSubnetMap[nthRepresentation], referenceMap[subnet], baseNetwork);
         }
     }
 }
@@ -955,8 +996,8 @@ function expandKeys(subnetTree) {
 
 function renameKey(obj, oldKey, newKey) {
     if (oldKey !== newKey) {
-    Object.defineProperty(obj, newKey,
-        Object.getOwnPropertyDescriptor(obj, oldKey));
+        Object.defineProperty(obj, newKey,
+            Object.getOwnPropertyDescriptor(obj, oldKey));
         delete obj[oldKey];
     }
 }
@@ -977,43 +1018,43 @@ function importConfig(text) {
 }
 
 function sortIPCIDRs(obj) {
-  // Base case: if the value is an empty object, return it
-  if (typeof obj === 'object' && Object.keys(obj).length === 0) {
-    return {};
-  }
-
-  // Separate CIDR entries from metadata
-  const entries = Object.entries(obj);
-  const cidrEntries = entries.filter(([key]) => !key.startsWith('_'));
-  const metadataEntries = entries.filter(([key]) => key.startsWith('_'));
-
-  // Sort CIDR entries by IP address
-  const sortedCIDREntries = cidrEntries.sort((a, b) => {
-    const ipA = a[0].split('/')[0].split('.').map(Number);
-    const ipB = b[0].split('/')[0].split('.').map(Number);
-
-    for (let i = 0; i < 4; i++) {
-      if (ipA[i] !== ipB[i]) {
-        return ipA[i] - ipB[i];
-      }
+    // Base case: if the value is an empty object, return it
+    if (typeof obj === 'object' && Object.keys(obj).length === 0) {
+        return {};
     }
-    return 0;
-  });
 
-  // Create sorted object, starting with metadata
-  const sortedObj = {};
+    // Separate CIDR entries from metadata
+    const entries = Object.entries(obj);
+    const cidrEntries = entries.filter(([key]) => !key.startsWith('_'));
+    const metadataEntries = entries.filter(([key]) => key.startsWith('_'));
 
-  // Add sorted CIDR entries with recursion
-  for (const [key, value] of sortedCIDREntries) {
-    sortedObj[key] = typeof value === 'object' ? sortIPCIDRs(value) : value;
-  }
+    // Sort CIDR entries by IP address
+    const sortedCIDREntries = cidrEntries.sort((a, b) => {
+        const ipA = a[0].split('/')[0].split('.').map(Number);
+        const ipB = b[0].split('/')[0].split('.').map(Number);
 
-  // Add metadata entries (unsorted, as they appeared in original)
-  for (const [key, value] of metadataEntries) {
-    sortedObj[key] = value;
-  }
+        for (let i = 0; i < 4; i++) {
+            if (ipA[i] !== ipB[i]) {
+                return ipA[i] - ipB[i];
+            }
+        }
+        return 0;
+    });
 
-  return sortedObj;
+    // Create sorted object, starting with metadata
+    const sortedObj = {};
+
+    // Add sorted CIDR entries with recursion
+    for (const [key, value] of sortedCIDREntries) {
+        sortedObj[key] = typeof value === 'object' ? sortIPCIDRs(value) : value;
+    }
+
+    // Add metadata entries (unsorted, as they appeared in original)
+    for (const [key, value] of metadataEntries) {
+        sortedObj[key] = value;
+    }
+
+    return sortedObj;
 }
 
 const rgba2hex = (rgba) => `#${rgba.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+\.{0,1}\d*))?\)$/).slice(1).map((n, i) => (i === 3 ? Math.round(parseFloat(n) * 255) : parseFloat(n)).toString(16).padStart(2, '0').replace('NaN', '')).join('')}`
